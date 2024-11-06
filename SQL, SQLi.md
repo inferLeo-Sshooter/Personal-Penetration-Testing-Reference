@@ -9,6 +9,36 @@
 
 # SQL
 
+## DBMS
+
+| Category                          | Details                                                                                                    |
+|-----------------------------------|------------------------------------------------------------------------------------------------------------|
+| DBMS                              | - Database Management System<br>- Helps manage databases                                                   |
+| Various Types of DBMS             | - File-based<br>- Relational DBMS<br>- NoSQL<br>- Graph-based<br>- Key/Value stores                        |
+| Ways to Interact with DBMS        | - Command-line tools<br>- Graphical interface<br>- APIs (Application Programming Interfaces)               |
+| Must-Have Features of a DBMS      | - **Concurrency**: Many users at the same time, ensuring data integrity<br> - **Consistency**: Maintains data consistency and validity during concurrent interactions<br> - **Security**: Prevents unauthorized viewing or editing of data<br> - **Reliability**: Supports easy backup to prevent data loss or breaches<br> - **SQL**: Simplifies user interaction |
+| Two-Tiered Architecture           | User --> Web GUI (Tier 1) --> App Server (Tier 2) --> DBMS                                                |
+| Main Types of Databases           | - Relational DB (uses SQL)<br>- Non-relational DB (uses various communication methods)                    |
+
+<br>
+
+| Relational Database                                   | Non-relational Database                                                 |
+|-------------------------------------------------------|-------------------------------------------------------------------------|
+| Uses tables with keys to link data                    | Does not use tables, rows, or columns like relational databases         |
+| Uses schemas to define the data structure             | Stores data using different models based on the type of data            |
+| Tables are associated with keys for quick data access | Lack of defined structure allows for scalability and flexibility        |
+| Different tables are related to each other through keys | 4 common models: Key-Value, Document-Based, Wide-Column, and Graph     |
+| Links tables using keys for data integration          | Suitable for datasets with undefined or unstructured data               |
+| Tables can have multiple keys to link with other tables | Has a different method for injection called NoSQLi                     |
+| Relationships between tables are defined by a schema  |                                                                         |
+
+<br>
+
+| Operator | Symbol |
+|----------|--------|
+| AND      | `&&`   |
+| OR       | `\|\|`   |
+| NOT      | `!`    |
 
 
 # SQLi

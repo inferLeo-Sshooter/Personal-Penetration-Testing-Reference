@@ -520,6 +520,9 @@ Most database types (except Oracle) have a set of views called the information s
 
 For example, you can query `information_schema.tables` to list the tables in the database: `SELECT * FROM information_schema.tables`. Then, with **table names** being shows, we can use it to list all **columns** of each: `SELECT * FROM information_schema.columns WHERE table_name = 'Users'`.
 
+On Oracle, you can find the same information as follows:
+- You can list tables by querying `all_tables`: `SELECT * FROM all_tables`
+- You can list columns by querying `all_tab_columns`: `SELECT * FROM all_tab_columns WHERE table_name = 'USERS'`
 
 
 

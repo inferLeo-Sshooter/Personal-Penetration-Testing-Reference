@@ -493,7 +493,7 @@ If we wanted to be sure that Tor is properly being used, to prevent unwanted beh
   4. Try figure out the communication between the web and back-end
   5. Review the methodology
 
-- Try poking the target with **operators** like `'`; `' --` or with **query** like `' order by 1 --`. If the **order by** query result in something interesting, try increase the **number** to figure out number of **columns**. 
+- Try poking the target with **syntax** like `'`; `' --` or with **query** like `' order by 1 --`. If the **order by** query result in something interesting, try increase the **number** to figure out number of **columns**. 
 
 - To exploit SQL injection vulnerabilities, it's often necessary to find information about the database. This includes:
   + **The type and version of the database software**.

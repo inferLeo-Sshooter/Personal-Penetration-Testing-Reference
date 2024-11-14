@@ -6,7 +6,8 @@
 5. [Prevent](#Prevent)
 6. [HTB cheatsheet](#HTB-cheatsheet)
 7. [SQLmap](#SQLmap)
-8. [Flags and personal practice experiences](#Flags-and-personal-practice-experiences)
+8. [Flags](#Flags)
+9. [Self-exp as practicing](#Self-exp-as-practicing)
 
 # SQL
 
@@ -385,7 +386,7 @@ If we wanted to be sure that Tor is properly being used, to prevent unwanted beh
   + Nếu ta có thể viết file để command execution, khả năng cao ta cũng có thể test tính năng của SQL map tạo easy shell cho chúng ta mà không phải viết shell bằng tay. Do SQLmap thực hiện khai thác lỗi để lấy shell. `sqlmap -u "http://www.example.com/?id=1" --os-shell`
   + Tuy nhiên, có thể gặp lỗi nên có thể đổi phương thức, ví dụ như Error-based SQL Injection: `sqlmap -u "http://www.example.com/?id=1" --os-shell --technique=E`
 
-# Flags and personal practice experiences
+# Flags
 
 - `--batch`: skipping any required user-input, automatically choosing using the default option.
 - `--data`: data truyền vào. POST REQUEST
@@ -476,3 +477,34 @@ If we wanted to be sure that Tor is properly being used, to prevent unwanted beh
 <br>
 
 - khi tìm được boolean blind, kết hợp sử dụng `-T table -C column --dump` để dump data trong cột của table đó
+
+
+# Self-exp as practicing
+
+- Steps for an SQLi PoC:
+  1. Identify injectable points: Find input fields or URL parameters that interact with the database.
+  2. Inject SQL syntax: Add characters like ' or ", OR 1=1, --, etc., to see if the database responds in an unexpected way.
+  3. Observe responses: If the query breaks or behaves differently (returns all data, errors, etc.), it's likely vulnerable.
+
+- Keep note:
+  1. Try to figure out what SQL query being used, end goal: like what we trying to display
+  2. Take a look at the url and its parameter
+  3. Look at the content of the page, it might tell the columns and datatype of the table
+  4. Try figure out the communication between the web and back-end
+  5. Review the methodology
+
+- Try figure out what **DMS being used (mysql, msql, oracle, ...)** to determine query. Then, try querying **database type and version**.
+
+| Database type	| Query |
+|-|-|
+| **Microsoft, MySQL** | `SELECT @@version` |
+| **Oracle** |`SELECT * FROM v$version` |
+| **PostgreSQL** | `SELECT version()` |
+
+Example: `' UNION SELECT @@version--`
+
+
+
+
+
+

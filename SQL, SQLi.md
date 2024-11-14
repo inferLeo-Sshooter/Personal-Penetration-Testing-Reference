@@ -495,6 +495,12 @@ If we wanted to be sure that Tor is properly being used, to prevent unwanted beh
 
 - Try poking the target with **operators** like `'`; `' --` or with **query** like `' order by 1 --`. If the **order by** query result in something interesting, try increase the **number** to figure out number of **columns**. 
 
+- To exploit SQL injection vulnerabilities, it's often necessary to find information about the database. This includes:
+  + **The type and version of the database software**.
+  + **The tables and columns that the database contains**.
+
+## Querying the database type and version
+
 - Try figure out what **DMS being used (mysql, msql, oracle, ...)** to determine query. Then, try querying **database type and version**.
 
 | Database type	| Query |
@@ -504,6 +510,15 @@ If we wanted to be sure that Tor is properly being used, to prevent unwanted beh
 | **PostgreSQL** | `SELECT version()` |
 
 Example: `' UNION SELECT @@version--`
+Notice: each type of database may have different but similar query structure. Example, `' union select NULL, banner from v$version --`. As i was trying to retrieve `banner` from the `v$version`. 
+
+In some cases, some **characters, operator or syntax** might be filtered which result in **error** being displayed. Try figure out which one got **filtered, or not accepted** by the **type of DB**. Example: when i tried `' order by 1 --` --> **error** but with `' order by 1 #` --> **200 OK**.
+
+## Listing the contents of the database
+
+Most database types (except Oracle) have a set of views called the information schema. This provides information about the database.
+
+For example, you can query `information_schema.tables` to list the tables in the database: `SELECT * FROM information_schema.tables`. Then, with **table names** being shows, we can use it to list all **columns** of each: `SELECT * FROM information_schema.columns WHERE table_name = 'Users'`.
 
 
 

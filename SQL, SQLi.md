@@ -524,6 +524,19 @@ On Oracle, you can find the same information as follows:
 - You can list tables by querying `all_tables`: `SELECT * FROM all_tables`
 - You can list columns by querying `all_tab_columns`: `SELECT * FROM all_tab_columns WHERE table_name = 'USERS'`
 
+## Retrieving multiple values within a single column
+
+In some cases the query in the previous example may only return a single column.
+
+You can retrieve multiple values together within this single column by concatenating the values together. You can include a separator to let you distinguish the combined values. For example, on Oracle you could submit the input:
+
+`' UNION SELECT username || '~' || password FROM users--`
+
+This uses the double-pipe sequence `||` which is a string concatenation operator on Oracle. The injected query concatenates together the values of the `username` and `password` fields, separated by the `~` character. The results from the query contain all the usernames and passwords, for example:
+
+`administrator~s3cure` <br>
+`wiener~peter` <br>
+`carlos~montoya`
 
 
 

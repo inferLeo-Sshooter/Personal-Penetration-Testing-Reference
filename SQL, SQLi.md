@@ -518,7 +518,7 @@ In some cases, some **characters, operator or syntax** might be filtered which r
 
 Most database types (except Oracle) have a set of views called the information schema. This provides information about the database.
 
-For example, you can query `information_schema.tables` to list the tables in the database: `SELECT * FROM information_schema.tables`. Then, with **table names** being shows, we can use it to list all **columns** of each: `SELECT * FROM information_schema.columns WHERE table_name = 'Users'`.
+For example, you can query `information_schema.tables` to list the tables in the database: `SELECT table_name, null FROM information_schema.tables`. Then, with **table names** being shows, we can use it to list all **columns** of each: `SELECT column_name, null FROM information_schema.columns WHERE table_name = 'Users'`.
 
 On Oracle, you can find the same information as follows:
 - You can list tables by querying `all_tables`: `SELECT * FROM all_tables`

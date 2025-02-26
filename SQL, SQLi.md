@@ -1,6 +1,6 @@
 # Table of contents
-1. [SQL](#SQL)
-2. [SQLi](#SQLi)
+1. [1. SQL](#SQL)
+2. [2. SQLi](#SQLi)
 3. [Methodology](#Methodology)
 4. [How to do](#How-to-do)
 5. [Prevent](#Prevent)

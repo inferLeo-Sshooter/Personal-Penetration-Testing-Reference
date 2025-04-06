@@ -6,6 +6,7 @@ This lab contains a SQL injection vulnerability in the product category filter. 
 
 To solve the lab, perform a SQL injection attack that causes the application to display one or more unreleased products.
 
+**Takeaways:**
 > - Find and try all the endtry points.
 
 

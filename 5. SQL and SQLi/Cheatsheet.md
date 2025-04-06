@@ -250,7 +250,7 @@ This uses the double-pipe sequence `||` which is a string concatenation operator
 
 
 
-# Blind SQL injection
+# 3. About Blind SQL injection and labs
 
 - Vulnerable to SQLi
 - Not visible

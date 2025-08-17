@@ -1,6 +1,14 @@
 # Bug Hunting Methodology Mind Map
 
 ```
+Keep in mind:
+1. when login, check all function, test all, take a long look, as if ur user, be user.
+2. take notice at rustscan + nmap results. 
+3. METHODS.
+4. Testing with structure. test -> obfs -> test -> change method -> repeat. %27
+5. Once get in with admin cred, skip normal user and what they can do
+6. Do steps by steps as you prepare, dont skip anything
+
 Bug Hunting Methodology
 ├── Mental Preparation
 │   ├── Overcome Mental Hurdles

@@ -91,4 +91,3 @@
 
 ---
 
-**Note**: This cheat sheet is intended for authorized penetration testing, security research, and educational purposes only. Ensure you have proper authorization before using these tools and techniques on any system.

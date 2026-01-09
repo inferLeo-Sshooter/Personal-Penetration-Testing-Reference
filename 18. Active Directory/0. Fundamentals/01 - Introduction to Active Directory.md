@@ -1,4 +1,15 @@
+# Table of Contents
 
+- [1. Active Directory Overview](#1-active-directory-overview)
+- [2. Active Directory Fundamentals](#2-active-directory-fundamentals)
+  - [Active Directory Structure](#active-directory-structure)
+  - [Active Directory Terminology](#active-directory-terminology)
+  - [Active Directory Objects](#active-directory-objects)
+  - [Active Directory Functionality](#active-directory-functionality)
+    - [Domain and Forest Functional Levels](#domain-and-forest-functional-levels)
+    - [Trusts](#trusts)
+
+---
 
 # 1. Active Directory Overview
 
@@ -155,12 +166,113 @@ While root domains trust their respective child domains, **child domains across 
 
 ## Active Directory Objects
 
+As mentioned above, an object can be defined as ANY resource present within an Active Directory environment such as OUs, printers, users, domain controllers.
 
+<img width="900" height="638" alt="image" src="https://github.com/user-attachments/assets/01ecd1fa-068d-402d-9563-0a7092b5aba7" />
 
+**Users** - Leaf objects representing organization members. Security principals with SID and GUID. Have numerous attributes (display name, last login, email, etc.). Critical attacker targets as even low-privileged accounts enable domain enumeration and resource access.
 
+**Contacts** - Represent external users with informational attributes (name, email, phone). Leaf objects, not security principals (GUID only, no SID). Example: vendor or customer contact cards.
 
+**Printers** - Point to network-accessible printers. Leaf objects, not security principals (GUID only). Attributes include name, driver info, and port number.
 
+**Computers** - Any domain-joined workstation or server. Leaf objects but are security principals with SID and GUID. Prime attacker targets since administrative access (`NT AUTHORITY\SYSTEM`) grants similar rights to standard domain users for enumeration.
 
+**Shared Folders** - Point to shared folders with configurable access controls (public, authenticated users only, or restricted). Not security principals (GUID only). Attributes include name, location, and security rights.
 
+**Groups** - Container objects holding users, computers, and other groups. Security principals with SID and GUID. Used to manage permissions and access. Often feature "nested groups" that can grant unintended rights. Tools like BloodHound visualize these relationships.
 
+**Organizational Units (OUs)** - Containers for storing similar objects and administrative delegation. Enable task delegation without full admin rights and Group Policy management for specific user/group subsets. Attributes include name, members, and security settings.
 
+**Domain** - The AD network structure containing objects (users, computers) organized into groups and OUs. Each domain has its own database and policies (default and custom).
+
+**Domain Controllers** - The AD network's brains, handling authentication, verifying users, controlling resource access, enforcing security policies, and storing domain object information.
+
+**Sites** - Sets of computers across subnets connected by high-speed links, used to optimize domain controller replication.
+
+**Built-in** - Container holding default groups created when an AD domain is established.
+
+**Foreign Security Principals (FSP)** - Objects representing security principals from trusted external forests. Created automatically when external objects are added to current domain groups. Hold the foreign object's SID for name resolution via trust relationships.
+
+---
+
+## Active Directory Functionality
+
+> - `PDC Emulator` : maintains time for a domain
+> - `Relative ID Master` : ensures that objects in a domain are not assigned the same SID
+> - `cross-link` : type of trust is a link between two child domains in a forest
+
+As mentioned before, there are five Flexible Single Master Operation (FSMO) roles. These roles can be defined as follows:
+
+| Role | Description |
+|------|-------------|
+| `Schema Master` | Manages the read/write copy of the AD schema, defining all possible object attributes. |
+| `Domain Naming Master` | Manages domain names and prevents duplicate domain names within the same forest. |
+| `Relative ID (RID) Master` | Assigns RID blocks to other DCs for new objects, ensuring unique SIDs. Domain object SIDs combine the domain SID with the assigned RID. |
+| `PDC Emulator` | The authoritative DC handling authentication requests, password changes, GPO management, and domain time synchronization. |
+| `Infrastructure Master` | Translates GUIDs, SIDs, and DNs between domains in multi-domain forests. When malfunctioning, ACLs display SIDs instead of resolved names. |
+
+---
+
+### Domain and Forest Functional Levels
+
+Microsoft uses functional levels to determine available AD DS features and capabilities at domain and forest levels, and to specify which Windows Server operating systems can run Domain Controllers.
+
+**Domain Functional Levels**
+
+| Level | Key Features | Supported DC Operating Systems |
+|-------|--------------|-------------------------------|
+| **Windows 2000 native** | Universal groups, group nesting, group conversion, SID history | Windows Server 2008 R2 through Windows 2000 |
+| **Windows Server 2003** | Netdom.exe, lastLogonTimestamp, constrained delegation, selective authentication | Windows Server 2012 R2 through Windows Server 2003 |
+| **Windows Server 2008** | DFS replication, AES 128/256 for Kerberos, fine-grained password policies | Windows Server 2012 R2 through Windows Server 2008 |
+| **Windows Server 2008 R2** | Authentication mechanism assurance, Managed Service Accounts | Windows Server 2012 R2 through Windows Server 2008 R2 |
+| **Windows Server 2012** | KDC support for claims, compound authentication, Kerberos armoring | Windows Server 2012 R2, Windows Server 2012 |
+| **Windows Server 2012 R2** | Protected Users group protections, Authentication Policies and Policy Silos | Windows Server 2012 R2 |
+| **Windows Server 2016** | Smart card requirements, new Kerberos features, credential protection | Windows Server 2019, Windows Server 2016 |
+
+*Note: Windows Server 2019 added no new functional level. Server 2008 functional level minimum required for Server 2019 DCs; domain must use DFS-R for SYSVOL replication.*
+
+**Forest Functional Levels - Key Capabilities**
+
+| Version | Capabilities |
+|---------|--------------|
+| **Windows Server 2003** | Forest trust, domain renaming, read-only domain controllers (RODC) |
+| **Windows Server 2008** | New domains default to Server 2008 domain functional level |
+| **Windows Server 2008 R2** | Active Directory Recycle Bin for restoring deleted objects |
+| **Windows Server 2012** | New domains default to Server 2012 domain functional level |
+| **Windows Server 2012 R2** | New domains default to Server 2012 R2 domain functional level |
+| **Windows Server 2016** | Privileged access management (PAM) using Microsoft Identity Manager (MIM) |
+
+---
+
+### Trusts
+
+A trust establishes forest-forest or domain-domain authentication, allowing users to access resources or administer another domain outside their own. It links the authentication systems of two domains.
+
+**Trust Types**
+
+| Type | Description |
+|------|-------------|
+| `Parent-child` | Domains within the same forest. Child domain has a two-way transitive trust with the parent. |
+| `Cross-link` | Trust between child domains to speed up authentication. |
+| `External` | Non-transitive trust between two separate domains in separate forests not joined by a forest trust. Uses SID filtering. |
+| `Tree-root` | Two-way transitive trust between a forest root domain and a new tree root domain, created automatically when establishing a new tree root. |
+| `Forest` | Transitive trust between two forest root domains. |
+
+**Trust Example**
+
+<img width="1098" height="747" alt="image" src="https://github.com/user-attachments/assets/17a71588-df44-4adf-8dc4-9ccddf0203d2" />
+
+**Trust Properties**
+
+**Transitive vs. Non-transitive:**
+- **Transitive**: Trust extends to objects the child domain trusts
+- **Non-transitive**: Only the child domain itself is trusted
+
+**One-way vs. Two-way (Bidirectional):**
+- **Bidirectional**: Users from both domains can access resources
+- **One-way**: Only users in the trusted domain can access resources in the trusting domain (trust direction is opposite to access direction)
+
+**Security Considerations**
+
+Domain trusts are often misconfigured, providing unintended attack paths. Trusts created for convenience may not be reviewed for security implications. Mergers and acquisitions can introduce bidirectional trusts with acquired companies, unknowingly adding risk. Attackers can exploit trusts to perform attacks like Kerberoasting against external domains to gain administrative access in the principal domain.

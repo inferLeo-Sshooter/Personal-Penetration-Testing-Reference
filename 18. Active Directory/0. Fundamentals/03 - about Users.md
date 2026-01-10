@@ -1,3 +1,22 @@
+# Table of Contents
+
+- [User and Machine Accounts](#user-and-machine-accounts)
+  - [Local Accounts](#local-accounts)
+  - [Domain Users](#domain-users)
+  - [User Naming Attributes](#user-naming-attributes)
+  - [Domain-joined vs. Non-Domain-joined Machines](#domain-joined-vs-non-domain-joined-machines)
+- [Active Directory Groups](#active-directory-groups)
+  - [Types of Groups](#types-of-groups)
+  - [Group Scopes](#group-scopes)
+  - [Built-in vs. Custom Groups](#built-in-vs-custom-groups)
+  - [Nested Group Membership](#nested-group-membership)
+  - [Important Group Attributes](#important-group-attributes)
+- [Active Directory Rights and Privileges](#active-directory-rights-and-privileges)
+  - [Built-in AD Groups](#built-in-ad-groups)
+  - [User Rights Assignment](#user-rights-assignment)
+  - [Viewing a User's Privileges](#viewing-a-users-privileges)
+
+---
 
 # User and Machine Accounts
 
@@ -278,3 +297,238 @@ Like users, groups have many `attributes`. Some of the most `important group att
 - `objectSid`: This is the security identifier or SID of the group, which is the unique value used to identify the group as a security principal.
 
 ---
+
+# Active Directory Rights and Privileges
+
+Rights and privileges are the cornerstones of AD management and, if mismanaged, can easily lead to abuse by attackers or penetration testers. Access rights and privileges are two important topics in AD (and infosec in general), and we must understand the difference. 
+
+`Rights` are typically assigned to users or groups and deal with permissions to `access` an object such as a file, while `privileges` grant a user permission to `perform an action` such as run a program, shut down a system, reset passwords, etc. Privileges can be assigned individually to users or conferred upon them via built-in or custom group membership. 
+
+Windows computers have a concept called `User Rights Assignment`, which, while referred to as rights, are actually types of privileges granted to a user.
+
+---
+
+## Built-in AD Groups
+
+Active Directory contains many default security groups, some granting members powerful rights and privileges that can be abused for privilege escalation, ultimately achieving Domain Admin or SYSTEM privileges on Domain Controllers. Membership should be tightly managed, as excessive group privileges are a common attack vector.
+
+**Key Built-in Groups:**
+
+|||
+|-|-|
+|**Account Operators** | Create and modify most accounts (users, local/global groups); can log in locally to DCs. Cannot manage Administrator accounts or members of Administrators, Server Operators, Account Operators, Backup Operators, or Print Operators groups.|
+|**Administrators** | Full unrestricted access to computers or entire domain (if on a DC).|
+|**Backup Operators** | Back up and restore all files regardless of permissions; log on to and shut down computers. Should be considered Domain Admins as they can make shadow copies of SAM/NTDS database to extract credentials.|
+|**DnsAdmins** | Access to network DNS information. Created only if DNS server role is/was installed on a domain controller.|
+|**Domain Admins** | Full domain administration access; members of local administrators group on all domain-joined machines.|
+|**Domain Computers** | Contains all domain computers except domain controllers.|
+|**Domain Controllers** | Contains all DCs; new DCs added automatically.|
+|**Domain Guests** | Includes built-in Guest account; members get domain profile when signing onto domain-joined computers as local guest.|
+|**Domain Users** | Contains all domain user accounts; new users added automatically.|
+|**Enterprise Admins** | Complete configuration access within the domain. Exists only in forest root domain. Grants forest-wide changes ability (adding child domains, creating trusts). Forest root domain Administrator account is default sole member.|
+|**Event Log Readers** | Read event logs on local computers. Created only when host promoted to DC.|
+|**Group Policy Creator Owners** | Create, edit, or delete Group Policy Objects.|
+|**Hyper-V Administrators** | Complete unrestricted Hyper-V access. Should be considered Domain Admins if virtual DCs exist.|
+|**IIS_IUSRS** | Built-in group for Internet Information Services (IIS 7.0+).|
+|**Pre-Windows 2000 Compatible Access** | Backward compatibility for Windows NT 4.0 and earlier. Often legacy configuration allowing network-wide AD information reading without valid credentials.|
+|**Print Operators** | Manage, create, share, delete printers connected to DCs and printer objects in AD. Can log on locally to DCs and potentially load malicious printer drivers for privilege escalation.|
+|**Protected Users** | Additional protections against credential theft and Kerberos abuse.|
+|**Read-only Domain Controllers** | Contains all read-only domain controllers.|
+|**Remote Desktop Users** | Grants RDP connection permissions. Cannot be renamed, deleted, or moved.|
+|**Remote Management Users** | Grants remote access via Windows Remote Management (WinRM).|
+|**Schema Admins** | Modify Active Directory schema (how all AD objects are defined). Exists only in forest root domain. Forest root domain Administrator account is default sole member.|
+|**Server Operators** | Exists only on DCs. Modify services, access SMB shares, backup files on DCs. No default members.|
+
+**Server Operators Group Details:**
+```
+PS C:\htb>  Get-ADGroup -Identity "Server Operators" -Properties *
+
+adminCount                      : 1
+CanonicalName                   : INLANEFREIGHT.LOCAL/Builtin/Server Operators
+CN                              : Server Operators
+Created                         : 10/27/2021 8:14:34 AM
+createTimeStamp                 : 10/27/2021 8:14:34 AM
+Deleted                         : 
+Description                     : Members can administer domain servers
+DisplayName                     : 
+DistinguishedName               : CN=Server Operators,CN=Builtin,DC=INLANEFREIGHT,DC=LOCAL
+dSCorePropagationData           : {10/28/2021 1:47:52 PM, 10/28/2021 1:44:12 PM, 10/28/2021 1:44:11 PM, 10/27/2021 
+                                  8:50:25 AM...}
+GroupCategory                   : Security
+GroupScope                      : DomainLocal
+groupType                       : -2147483643
+HomePage                        : 
+instanceType                    : 4
+isCriticalSystemObject          : True
+isDeleted                       : 
+LastKnownParent                 : 
+ManagedBy                       : 
+MemberOf                        : {}
+Members                         : {}
+Modified                        : 10/28/2021 1:47:52 PM
+modifyTimeStamp                 : 10/28/2021 1:47:52 PM
+Name                            : Server Operators
+nTSecurityDescriptor            : System.DirectoryServices.ActiveDirectorySecurity
+ObjectCategory                  : CN=Group,CN=Schema,CN=Configuration,DC=INLANEFREIGHT,DC=LOCAL
+ObjectClass                     : group
+ObjectGUID                      : 0887487b-7b07-4d85-82aa-40d25526ec17
+objectSid                       : S-1-5-32-549
+ProtectedFromAccidentalDeletion : False
+SamAccountName                  : Server Operators
+sAMAccountType                  : 536870912
+sDRightsEffective               : 0
+SID                             : S-1-5-32-549
+SIDHistory                      : {}
+systemFlags                     : -1946157056
+uSNChanged                      : 228556
+uSNCreated                      : 12360
+whenChanged                     : 10/28/2021 1:47:52 PM
+whenCreated                     : 10/27/2021 8:14:34 AM
+```
+
+As we can see above, the default state of the `Server Operators` group is to have no members and is a domain local group by default. In contrast, the `Domain Admins` group seen below has several members and service accounts assigned to it. Domain Admins are also Global groups instead of domain local. Be wary of who, if anyone, you give access to these groups. An attacker could easily gain the keys to the enterprise if they gain access to a user assigned to these groups.
+
+**Domain Admins Group Membership:**
+```
+PS C:\htb>  Get-ADGroup -Identity "Domain Admins" -Properties * | select DistinguishedName,GroupCategory,GroupScope,Name,Members
+
+DistinguishedName : CN=Domain Admins,CN=Users,DC=INLANEFREIGHT,DC=LOCAL
+GroupCategory     : Security
+GroupScope        : Global
+Name              : Domain Admins
+Members           : {CN=htb-student_adm,CN=Users,DC=INLANEFREIGHT,DC=LOCAL, CN=sharepoint
+                    admin,CN=Users,DC=INLANEFREIGHT,DC=LOCAL, CN=FREIGHTLOGISTICSUSER,OU=Service
+                    Accounts,OU=Corp,DC=INLANEFREIGHT,DC=LOCAL, CN=PROXYAGENT,OU=Service
+                    Accounts,OU=Corp,DC=INLANEFREIGHT,DC=LOCAL...}
+```
+
+---
+
+## User Rights Assignment
+
+Users can have various rights assigned based on group membership and privileges assigned by administrators via Group Policy (GPO). While not all user rights are security-critical, certain rights can lead to unintended consequences like privilege escalation or sensitive file access.
+
+**Attack Example:**
+If an attacker gains write access over a GPO applied to an OU containing controlled users, they could use tools like **SharpGPOAbuse** to assign targeted rights and further domain access.
+
+**High-Risk User Rights:**
+
+|Privilege	|Description|
+|-|-|
+|**SeRemoteInteractiveLogonRight** | Grants RDP login rights to hosts, potentially enabling sensitive data access or privilege escalation.|
+|**SeBackupPrivilege** | Allows creating system backups to obtain copies of sensitive files like SAM and SYSTEM Registry hives and the NTDS.dit Active Directory database for password retrieval.|
+|**SeDebugPrivilege** | Allows debugging and adjusting process memory. Attackers can use tools like Mimikatz to read Local System Authority (LSASS) process memory and extract stored credentials.|
+|**SeImpersonatePrivilege** | Allows impersonating privileged account tokens (e.g., `NT AUTHORITY\SYSTEM`). Can be leveraged with tools like JuicyPotato, RogueWinRM, or PrintSpoofer for system privilege escalation.|
+|**SeLoadDriverPrivilege** | Allows loading and unloading device drivers, potentially enabling privilege escalation or system compromise.|
+|**SeTakeOwnershipPrivilege** | Allows processes to take object ownership, granting access to otherwise inaccessible file shares or files.|
+
+---
+
+## Viewing a User's Privileges
+
+
+After logging into a host, the command `whoami /priv` displays all user rights assigned to the current user. 
+
+**Important Notes:**
+
+- Some rights are only available to administrative users and can only be listed/leveraged when running an **elevated CMD or PowerShell session**
+- **Elevated rights** and **User Account Control (UAC)** are security features introduced with Windows Vista that restrict applications from running with full permissions unless absolutely necessary
+- Rights available to admins differ drastically between non-elevated and elevated console sessions
+
+The command provides visibility into whether a standard Active Directory user or an administrator is being used, and what privileges are currently accessible:
+
+**Standard Domain User's Rights:**
+```
+PS C:\htb> whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                    State
+============================= ============================== ========
+SeChangeNotifyPrivilege       Bypass traverse checking       Enabled
+SeIncreaseWorkingSetPrivilege Increase a process working set Disabled
+```
+
+We can see that the rights are very `limited`, and none of the "dangerous" rights outlined above are present. Next, let's take a look at a privileged user. Below are the rights available to a Domain Admin user.
+
+**Domain Admin Rights Non-Elevated:**
+
+We can see the following in a `non-elevated` console which does not appear to be anything more than available to the standard domain user. This is because, by default, Windows systems do not enable all rights to us unless we run the CMD or PowerShell console in an elevated context. This is to prevent every application from running with the highest possible privileges.
+
+```
+PS C:\htb> whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                          State
+============================= ==================================== ========
+SeShutdownPrivilege           Shut down the system                 Disabled
+SeChangeNotifyPrivilege       Bypass traverse checking             Enabled
+SeUndockPrivilege             Remove computer from docking station Disabled
+SeIncreaseWorkingSetPrivilege Increase a process working set       Disabled
+SeTimeZonePrivilege           Change the time zone                 Disabled
+```
+
+**Domain Admin Rights Elevated:**
+
+If we enter the same command from an elevated PowerShell console, we can see the complete listing of rights available to us:
+
+```
+PS C:\htb> whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                            Description                                                        State
+========================================= ================================================================== ========
+SeIncreaseQuotaPrivilege                  Adjust memory quotas for a process                                 Disabled
+SeMachineAccountPrivilege                 Add workstations to domain                                         Disabled
+SeSecurityPrivilege                       Manage auditing and security log                                   Disabled
+SeTakeOwnershipPrivilege                  Take ownership of files or other objects                           Disabled
+SeLoadDriverPrivilege                     Load and unload device drivers                                     Disabled
+SeSystemProfilePrivilege                  Profile system performance                                         Disabled
+SeSystemtimePrivilege                     Change the system time                                             Disabled
+SeProfileSingleProcessPrivilege           Profile single process                                             Disabled
+SeIncreaseBasePriorityPrivilege           Increase scheduling priority                                       Disabled
+SeCreatePagefilePrivilege                 Create a pagefile                                                  Disabled
+SeBackupPrivilege                         Back up files and directories                                      Disabled
+SeRestorePrivilege                        Restore files and directories                                      Disabled
+SeShutdownPrivilege                       Shut down the system                                               Disabled
+SeDebugPrivilege                          Debug programs                                                     Enabled
+SeSystemEnvironmentPrivilege              Modify firmware environment values                                 Disabled
+SeChangeNotifyPrivilege                   Bypass traverse checking                                           Enabled
+SeRemoteShutdownPrivilege                 Force shutdown from a remote system                                Disabled
+SeUndockPrivilege                         Remove computer from docking station                               Disabled
+SeEnableDelegationPrivilege               Enable computer and user accounts to be trusted for delegation     Disabled
+SeManageVolumePrivilege                   Perform volume maintenance tasks                                   Disabled
+SeImpersonatePrivilege                    Impersonate a client after authentication                          Enabled
+SeCreateGlobalPrivilege                   Create global objects                                              Enabled
+SeIncreaseWorkingSetPrivilege             Increase a process working set                                     Disabled
+SeTimeZonePrivilege                       Change the time zone                                               Disabled
+SeCreateSymbolicLinkPrivilege             Create symbolic links                                              Disabled
+SeDelegateSessionUserImpersonatePrivilege Obtain an impersonation token for another user in the same session Disabled
+```
+
+User rights increase based on the groups they are placed in or their assigned privileges. 
+
+Below is an example of the rights granted to a `Backup Operators` group member. Users in this group have other rights currently restricted by UAC (additional rights such as the powerful `SeBackupPrivilege` are not enabled by default in a standard console session). Still, we can see from this command that they have the `SeShutdownPrivilege`, which means they can shut down a domain controller. This privilege on its own could not be used to gain access to sensitive data but could cause a massive service interruption should they log onto a domain controller locally (not remotely via RDP or WinRM).
+
+**Backup Operator Rights:**
+```
+PS C:\htb> whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                    State
+============================= ============================== ========
+SeShutdownPrivilege           Shut down the system           Disabled
+SeChangeNotifyPrivilege       Bypass traverse checking       Enabled
+SeIncreaseWorkingSetPrivilege Increase a process working set Disabled
+```
+
+
+
+

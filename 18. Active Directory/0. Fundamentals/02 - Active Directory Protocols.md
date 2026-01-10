@@ -18,6 +18,11 @@
 
 While Windows operating systems use a variety of protocols to communicate, Active Directory specifically requires `Lightweight Directory Access Protocol (LDAP)`, Microsoft's version of `Kerberos`, `DNS` for authentication and communication, and `MSRPC` which is the Microsoft implementation of `Remote Procedure Call (RPC)`, an interprocess communication technique used for client-server model-based applications.
 
+- DNS - Name resolution (finding Domain Controllers and servers by hostname)
+- Kerberos - Authentication (proving user identity via tickets)
+- LDAP - Directory queries (retrieving user attributes, groups, permissions)
+- MSRPC - Communication framework (enables remote calls to services like SAMR, DRSUAPI)
+
 ## Kerberos
 
 Kerberos has been the default authentication protocol for domain accounts since Windows 2000. It's an open standard enabling interoperability and uses mutual authentication where both user and server verify identities. Unlike password-based systems, Kerberos uses a ticket-based, stateless protocol.

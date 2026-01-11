@@ -113,6 +113,4 @@ Get-ADComputer -Identity "name" -Properties * | select CN,CanonicalName,IPv4Addr
 
 ---
 
-## References
-- Microsoft
-```
+

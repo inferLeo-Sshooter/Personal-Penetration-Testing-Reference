@@ -1,4 +1,4 @@
-```markdown
+
 # Introduction to Active Directory - Cheat Sheet
 
 ## Basic Commands Needed

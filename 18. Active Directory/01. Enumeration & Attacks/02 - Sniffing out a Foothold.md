@@ -1,4 +1,4 @@
-![responder_hashes](https://github.com/user-attachments/assets/1645797a-2428-4f7e-8ee3-825a3756ca07)
+
 # LLMNR/NBT-NS Poisoning - from Linux
 
 After initial domain enumeration—gathering user/group info, identifying hosts and critical services like Domain Controllers, and understanding naming schemes—we now focus on two techniques: network poisoning and password spraying. The goal is to obtain valid cleartext credentials for a domain user account, establishing a foothold for credentialed enumeration.
@@ -144,6 +144,8 @@ Any of the rogue servers (i.e., SMB) can be disabled in the `Responder.conf` fil
 ### Starting Responder with Default Settings
 
 `sudo responder -I ens224 `
+
+![responder_hashes](https://github.com/user-attachments/assets/1645797a-2428-4f7e-8ee3-825a3756ca07)
 
 Typically we should start Responder and let it run for a while in a tmux window while we perform other enumeration tasks to maximize the number of hashes that we can obtain. 
 

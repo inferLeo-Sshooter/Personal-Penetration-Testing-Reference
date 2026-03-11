@@ -1,5 +1,8 @@
 # HTB cheatsheet
 
+
+`"><svg/onload=confirm(1)>`
+
 ## XSS Payloads
 
 | Code | Description |

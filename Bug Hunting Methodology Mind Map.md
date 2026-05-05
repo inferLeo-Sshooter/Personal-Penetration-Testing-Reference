@@ -21,7 +21,7 @@ Bug Hunting Methodology
 │
 ├── Pre-Analysis Phase
 │   ├── Technology Identification
-│   │   ├── WhatRuns / Wappalyzer
+│   │   ├── WhatRuns / Wappalyzer / Whatweb / OXDF's Error
 │   │   ├── webanalyze (CLI)
 │   │   └── Document: Server, frameworks, analytics
 │   ├── Application Layers Assessment

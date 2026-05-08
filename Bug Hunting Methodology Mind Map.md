@@ -1,6 +1,6 @@
 # Bug Hunting Methodology Mind Map
 
-```
+
 Keep in mind:
 1. **Just use the app for 10 minutes** — click around like a normal user while a proxy (Burp/Caido) records all traffic silently. As if ur user, be user
 2. **Split the surface** — divide the target into pieces by counting separate apps (each with its own frontend + API), not user roles. A platform with a user app and admin panel = 2 surfaces.
@@ -8,12 +8,15 @@ Keep in mind:
 4. **Note anomalies** — UI elements that flash, responses returning more data than displayed, unusual headers. Short notes, come back later.
 5. **Test with intent** — don't blindly swap IDs. Feed the app values it doesn't expect (null, undefined, a victim's ID in an unintended field) to create confusion, because confused code makes mistakes.
 
+**Note**: For example, ur proxy already captures every file the app loads. Instead of scanning for secrets, trace where real user data flows through the app — that's how u finds actual data leaks.
+
 6. take notice at rustscan + nmap results. 
 7. METHODS.
 8. Testing with structure. test -> obfs -> test -> change method -> repeat. %27
 9. Once get in with admin cred, skip normal user and what they can do
 10. Do steps by steps as you prepare, dont skip anything
 
+```
 Bug Hunting Methodology
 ├── Mental Preparation
 │   ├── Overcome Mental Hurdles

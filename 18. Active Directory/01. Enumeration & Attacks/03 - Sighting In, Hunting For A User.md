@@ -11,7 +11,11 @@
   - [Gathering Users with LDAP Anonymous](#gathering-users-with-ldap-anonymous)
   - [Enumerating Users with Kerbrute](#enumerating-users-with-kerbrute)
   - [Credentialed Enumeration to Build our User List](#credentialed-enumeration-to-build-our-user-list)
-
+- [LDAP enum if anonymous bind is enabled](#LDAP-enum-if-anonymous-bind-is-enabled)
+  - [Enumerate Users](#Enumerate-Users)
+  - [Enumerate Groups](#Enumerate-Groups)
+  - [Find Kerberoastable Accounts (have SPNs)](#Find-Kerberoastable-Accounts-(have-SPNs))
+  - [Find AS-REP Roastable Accounts (no pre-auth)](#Find-AS-REP-Roastable-Accounts-no-pre-auth)
 ---
 
 # Enumerating & Retrieving Password Policies
@@ -598,6 +602,80 @@ SMB         172.16.5.5      445    ACADEMY-EA-DC01  INLANEFREIGHT.LOCAL\avazquez
 SMB         172.16.5.5      445    ACADEMY-EA-DC01  INLANEFREIGHT.LOCAL\pfalcon                        badpwdcount: 0 baddpwdtime: 1600-12-31 19:03:58
 
 <SNIP>
+```
+
+---
+
+# LDAP enum if anonymous bind is enabled
+
+- `LDAP (port 389 / 3268)`
+
+## Using `ldapsearch` for AD Enumeration
+
+### First — Test Anonymous Bind
+
+```bash
+ldapsearch -x -H ldap://<ip> -b "DC=megabank,DC=local"
+```
+- `-x` = simple auth (no SASL)
+- `-H` = host
+- `-b` = base DN to search from
+
+If it returns data, **anonymous bind is enabled** — goldmine.
+
+---
+
+### Enumerate Users
+
+```bash
+# All user objects
+ldapsearch -x -H ldap://<ip> -b "DC=megabank,DC=local" "(objectClass=user)"
+
+# Just usernames (cleaner output)
+ldapsearch -x -H ldap://<ip> -b "DC=megabank,DC=local" "(objectClass=user)" sAMAccountName
+
+# Pull useful fields — name, username, description (descriptions often have passwords!)
+ldapsearch -x -H ldap://<ip> -b "DC=megabank,DC=local" "(objectClass=user)" sAMAccountName description displayName
+```
+
+> **Pro tip:** The `description` field is a classic HTB foothold — admins sometimes leave passwords there.
+
+---
+
+### Enumerate Groups
+
+```bash
+ldapsearch -x -H ldap://<ip> -b "DC=megabank,DC=local" "(objectClass=group)" cn member
+```
+
+---
+
+### Find Kerberoastable Accounts (have SPNs)
+
+```bash
+ldapsearch -x -H ldap://<ip> -b "DC=megabank,DC=local" "(&(objectClass=user)(servicePrincipalName=*))" sAMAccountName servicePrincipalName
+```
+
+---
+
+### Find AS-REP Roastable Accounts (no pre-auth)
+
+```bash
+ldapsearch -x -H ldap://<ip> -b "DC=megabank,DC=local" "(&(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=4194304))" sAMAccountName
+```
+
+The magic number `4194304` is the flag for **"Do not require Kerberos preauthentication"**.
+
+---
+
+### Cleaner Output with `grep`
+
+```bash
+# Just get a plain list of usernames
+ldapsearch -x -H ldap://<ip> -b "DC=megabank,DC=local" "(objectClass=user)" sAMAccountName | grep sAMAccountName
+
+# Strip the attribute name
+ldapsearch -x -H ldap://<ip> -b "DC=megabank,DC=local" "(objectClass=user)" sAMAccountName | grep sAMAccountName | awk '{print $2}'
 ```
 
 ---

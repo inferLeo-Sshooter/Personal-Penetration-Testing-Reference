@@ -14,7 +14,7 @@
 - [LDAP enum if anonymous bind is enabled](#LDAP-enum-if-anonymous-bind-is-enabled)
   - [Enumerate Users](#Enumerate-Users)
   - [Enumerate Groups](#Enumerate-Groups)
-  - [Find Kerberoastable Accounts (have SPNs)](#Find-Kerberoastable-Accounts-(have-SPNs))
+  - [Find Kerberoastable Accounts (have SPNs)](#Find-Kerberoastable-Accounts-have-SPNs)
   - [Find AS-REP Roastable Accounts (no pre-auth)](#Find-AS-REP-Roastable-Accounts-no-pre-auth)
 ---
 

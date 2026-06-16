@@ -8,9 +8,9 @@ The following topics will be discussed:
 
 
 - [1. Fuzzing](#1-Fuzzing)
-- [2. Basic Fuzzing](#2-Basic_Fuzzing)
-- [3. Domain Fuzzing](#3-Domain_Fuzzing)
-- [4. Parameter Fuzzing](#4-Parameter_Fuzzing)
+- [2. Basic Fuzzing](#2-Basic-Fuzzing)
+- [3. Domain Fuzzing](#3-Domain-Fuzzing)
+- [4. Parameter Fuzzing](#4-Parameter-Fuzzing)
 - [5. Cheatsheet](#5-Cheatsheet)
 - [Note](#note)
 
